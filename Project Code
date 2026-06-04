@@ -1,0 +1,115 @@
+## Project Code
+
+//define constants etc.
+
+#define LED_LOSE 13
+#define LEDR 12
+#define LEDY 11
+#define LEDB 10
+#define LEDG 9
+#define LED_WIN 8
+
+#define pb_red 7
+#define pb_yellow 6
+#define pb_blue 5
+#define pb_green 4
+
+//define functions prototypes
+unsigned long waitTime = 0;
+unsigned long LEDonTime = 0;
+unsigned long now = 0;
+unsigned long buttonPressTime = 0;
+unsigned long LEDwaittime = 0;
+bool pastbutton = LOW;
+bool startround = true;
+bool waitingforpress = false;
+int count = 1;
+int LEDpins[4] = {12,11,10,9};
+int PBpins[4] = {7,6,5,4};
+int randpin;
+unsigned long reactiontime = 0;
+unsigned long score = 0;
+//initialization
+void setup()
+{
+ pinMode(pb_red, INPUT);
+ pinMode(pb_yellow, INPUT);
+ pinMode(pb_blue, INPUT);
+ pinMode(pb_green, INPUT);
+ pinMode(LED_LOSE, OUTPUT);
+ pinMode(LED_WIN, OUTPUT);
+ pinMode(LEDR, OUTPUT);
+ pinMode(LEDY, OUTPUT);
+ pinMode(LEDB, OUTPUT);
+ pinMode(LEDG, OUTPUT);
+ 
+ randomSeed(analogRead(0));
+ Serial.begin(9600);
+   //configure pin modes (inputs, outputs) etc.
+}
+
+
+//main program loop
+void loop()
+{
+  now = millis();
+  if(count <= 5){
+    
+    if(startround == true){
+      waitTime = random(2000, 7000);
+      startround = false;
+      LEDwaittime = now;
+    }
+    if(now - LEDwaittime >= waitTime && waitingforpress == false){
+      randpin = random(0,4);
+      digitalWrite(LEDpins[randpin], HIGH);
+      LEDonTime = now;
+      waitingforpress = true;
+    }
+    int buttonstate = digitalRead(PBpins[randpin]);
+    
+    if(buttonstate == HIGH && pastbutton == LOW && waitingforpress == true){
+      buttonPressTime = now;
+      waitingforpress = false;
+      reactiontime = buttonPressTime - LEDonTime;
+      digitalWrite(LEDpins[randpin], LOW);
+      score += map(reactiontime, 0, 1000, 1000, 0);
+      Serial.println(count);
+      Serial.println(score);
+      count++;
+      startround = true;
+    }
+    if(now - LEDonTime >= 1000 && waitingforpress == true){
+      score += 0;
+	  Serial.println(count);
+      Serial.println(score);
+      digitalWrite(LEDpins[randpin], LOW);
+      count++;
+      waitingforpress = false;
+      startround = true;
+    }
+    pastbutton = buttonstate;
+    
+    
+  } else {
+    Serial.println("GAME OVER NEW ROUND STARTING");
+    count = 1;
+    score = 0;
+    
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
